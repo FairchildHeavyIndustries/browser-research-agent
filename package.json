@@ -1,0 +1,21 @@
+{
+  "name": "browser-research-agent",
+  "version": "1.0.0",
+  "description": "Catalog research agent using Playwright MCP + Claude API",
+  "type": "module",
+  "main": "agent.js",
+  "scripts": {
+    "read": "node --env-file=.env customers/sweep-and-vac/read-catalog.js",
+    "agent": "node --env-file=.env agent.js --customer sweep-and-vac",
+    "review": "node --env-file=.env review-server.js --customer sweep-and-vac",
+    "write": "node --env-file=.env customers/sweep-and-vac/write-catalog.js"
+  },
+  "dependencies": {
+    "@anthropic-ai/sdk": "^0.54.0",
+    "@playwright/mcp": "^0.0.29",
+    "rebrowser-playwright": "^1.52.0"
+  },
+  "engines": {
+    "node": ">=20"
+  }
+}

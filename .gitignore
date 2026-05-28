@@ -1,0 +1,8 @@
+.env
+node_modules/
+customers/*/output.json
+customers/*/approved.json
+.playwright-mcp/
+customers/sweep-and-vac/input.json
+local_pages/
+.DS_Store
