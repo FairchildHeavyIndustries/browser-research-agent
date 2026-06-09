@@ -27,7 +27,7 @@ const config = existsSync(CONFIG_JSON) ? JSON.parse(readFileSync(CONFIG_JSON, 'u
 const singleVideo = !!config.singleYoutubeVideo;
 
 const WEBSITE_DIR = resolve(__dirname, '../../..', 'Sweep and Vac/website');
-const PRODUCTS_JS = resolve(WEBSITE_DIR, 'data/products.js');
+const PRODUCTS_JSON = resolve(WEBSITE_DIR, 'data/products.json');
 const MANIFEST_JSON = resolve(WEBSITE_DIR, 'brochures/manifest.json');
 const IMG_DIR = resolve(WEBSITE_DIR, 'img/products');
 const BROCHURES_DIR = resolve(WEBSITE_DIR, 'brochures');
@@ -41,14 +41,7 @@ const approved = JSON.parse(readFileSync(APPROVED_JSON, 'utf8'));
 const client = new Anthropic();
 
 // ── Load catalog ─────────────────────────────────────────────────────────────
-const productsSrc = readFileSync(PRODUCTS_JS, 'utf8');
-const productsMatch = productsSrc.match(/(const products = )(\[[\s\S]*?\]);/);
-if (!productsMatch) {
-  console.error('Could not parse products array from products.js');
-  process.exit(1);
-}
-// eslint-disable-next-line no-eval
-let products = eval('(' + productsMatch[2] + ')');
+let products = JSON.parse(readFileSync(PRODUCTS_JSON, 'utf8'));
 
 // ── Load brochure manifest ────────────────────────────────────────────────────
 let manifest = JSON.parse(readFileSync(MANIFEST_JSON, 'utf8'));
@@ -114,14 +107,7 @@ function download(url, destPath) {
 
 // ── Save catalog ──────────────────────────────────────────────────────────────
 function saveCatalog() {
-  // Serialize products back to JS — preserve the header comment block
-  const header = productsSrc.slice(0, productsSrc.indexOf('const products = '));
-  const serialized = products.map(p => {
-    // Use JSON.stringify for each product object, then indent
-    return '  ' + JSON.stringify(p, null, 2).replace(/\n/g, '\n  ');
-  }).join(',\n');
-  const out = `${header}const products = [\n${serialized}\n];\n`;
-  writeFileSync(PRODUCTS_JS, out);
+  writeFileSync(PRODUCTS_JSON, JSON.stringify(products, null, 2));
 }
 
 // ── Image processing: resize to 800px longest side, encode to WebP ≤150 KB ────
@@ -328,8 +314,8 @@ async function main() {
 
   // Image integrity check
   try {
-    const imgCheck = productsSrc.match(/img\/products\/[^'"]+/g) || [];
-    const missing = imgCheck.filter(p => !existsSync(resolve(WEBSITE_DIR, p)));
+    const imgPaths = products.flatMap(p => [p.image, ...(p.images || [])]).filter(Boolean);
+    const missing = imgPaths.filter(p => !existsSync(resolve(WEBSITE_DIR, p)));
     if (missing.length > 0) {
       console.warn(`\nImage integrity check: ${missing.length} missing files:`);
       missing.forEach(p => console.warn('  ' + p));

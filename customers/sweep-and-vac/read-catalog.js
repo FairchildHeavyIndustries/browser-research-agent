@@ -9,7 +9,7 @@ import { dirname, resolve } from 'path';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const WEBSITE_DIR = resolve(__dirname, '../../..', 'Sweep and Vac/website');
-const PRODUCTS_JS = resolve(WEBSITE_DIR, 'data/products.js');
+const PRODUCTS_JSON = resolve(WEBSITE_DIR, 'data/products.json');
 const MANIFEST_JSON = resolve(WEBSITE_DIR, 'brochures/manifest.json');
 const MANUFACTURERS_JSON = resolve(WEBSITE_DIR, 'data/manufacturers.json');
 const INPUT_JSON = resolve(__dirname, 'input.json');
@@ -32,15 +32,7 @@ if (filterType && !filterValue) {
   process.exit(1);
 }
 
-const src = readFileSync(PRODUCTS_JS, 'utf8');
-const match = src.match(/const products = (\[[\s\S]*?\]);/);
-if (!match) {
-  console.error('Could not parse products array from products.js');
-  process.exit(1);
-}
-
-// eslint-disable-next-line no-eval
-const products = eval('(' + match[1] + ')');
+const products = JSON.parse(readFileSync(PRODUCTS_JSON, 'utf8'));
 const manifest = JSON.parse(readFileSync(MANIFEST_JSON, 'utf8'));
 const manufacturers = JSON.parse(readFileSync(MANUFACTURERS_JSON, 'utf8'));
 const manufacturerBaseUrls = Object.fromEntries(
